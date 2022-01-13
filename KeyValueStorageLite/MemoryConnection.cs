@@ -5,21 +5,23 @@ namespace KeyValueStorageLite
 {
     internal class MemoryConnection : DbConnection
     {
-        private static SqliteConnection? _sharedConnection;
+        private static readonly IDictionary<string, SqliteConnection> ConnectionCache =
+            new Dictionary<string, SqliteConnection>();
 
-        public MemoryConnection() : base(GetSharedConnection())
+        public MemoryConnection(string id, string connectionString) : base(GetSharedConnection(id, connectionString))
         {
         }
 
-        private static SqliteConnection GetSharedConnection()
+        private static SqliteConnection GetSharedConnection(string id, string connectionString)
         {
-            if (_sharedConnection == null)
+            if (!ConnectionCache.TryGetValue(id, out var conn))
             {
-                _sharedConnection = new SqliteConnection("DataSource=:memory:;Cache=Shared");
-                _sharedConnection.Open();
+                conn = new SqliteConnection(connectionString);
+                conn.Open();
+                ConnectionCache.Add(id, conn);
             }
 
-            return _sharedConnection;
+            return conn;
         }
 
         protected override void Dispose(bool managed)

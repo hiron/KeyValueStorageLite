@@ -45,7 +45,7 @@ namespace KeyValueStorageLite
             return default;
         }
 
-        public IEnumerable<Tuple<string,string>> GetAll()
+        public IEnumerable<KeyValue> GetAll()
         {
             using (var cmd = _connection.CreateCommand())
             {
@@ -58,8 +58,21 @@ namespace KeyValueStorageLite
                     {
                         var key = reader.GetString(keyIndex);
                         var value = reader.GetString(nameIndex);
-                        yield return new Tuple<string, string>(key, value);
+                        yield return new KeyValue(key, value);
                     }
+                }
+            }
+        }
+
+        public void Flush(IEnumerable<KeyValue> data)
+        {
+            using (var cmd = _connection.CreateCommand())
+            {
+                foreach (var pair in data)
+                {
+                    cmd.CommandText =
+                        $"INSERT OR REPLACE INTO `KeyValueItem` ( \"Key\" , \"Value\" ) VALUES ('{pair.Key}', '{pair.Value}');";
+                    cmd.ExecuteNonQuery();
                 }
             }
         }

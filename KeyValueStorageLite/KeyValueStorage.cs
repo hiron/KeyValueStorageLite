@@ -1,18 +1,14 @@
-﻿using Microsoft.Data.Sqlite;
-
-namespace KeyValueStorageLite
+﻿namespace KeyValueStorageLite
 {
-    public class KeyValueStorage
+    public class KeyValueStorage : KeyValueStorageBase
     {
-        private readonly Action<IKeyValueStorageOptions> _getOptions;
         private readonly IKeyValueItemSerializer _serializer;
         private readonly object _sync = new();
         private readonly Lazy<IDictionary<string, string>> _cache;
-        private bool _createCalled;
 
-        public KeyValueStorage(Action<IKeyValueStorageOptions> getOptions)
+        public KeyValueStorage(bool inMemory = false, string databaseName = "storage.db", string? password = null)
+            : base(inMemory, databaseName, password)
         {
-            _getOptions = getOptions ?? throw new ArgumentNullException(nameof(getOptions));
             _serializer = new KeyValueItemSystemTextJsonSerializer();
             _cache = new Lazy<IDictionary<string, string>>(GetAll);
         }
@@ -38,7 +34,7 @@ namespace KeyValueStorageLite
         {
             using (var db = CreateConnection())
             {
-                return db.GetAll().ToDictionary(tuple => tuple.Item1, tuple => tuple.Item2);
+                return db.GetAll().ToDictionary(tuple => tuple.Key, tuple => tuple.Value);
             }
 
         }
@@ -95,45 +91,6 @@ namespace KeyValueStorageLite
             using (var db = CreateConnection())
             {
                 action(db);
-            }
-        }
-
-        private IDbConnection CreateConnection()
-        {
-            var options = new KeyValueStorageOptions();
-            _getOptions.Invoke(options);
-
-            if (options.InMemory)
-            {
-                var connection = new MemoryConnection();
-                CreateTable(connection);
-
-                return connection;
-            }
-
-            var builder = new SqliteConnectionStringBuilder
-            {
-                DataSource = options.DatabaseName,
-                Mode = SqliteOpenMode.ReadWriteCreate
-            };
-            if (options.Encrypted && !string.IsNullOrEmpty(options.Password))
-            {
-                builder.Password = options.Password;
-            }
-
-            var connectionString = builder.ToString();
-            var db = new DbConnection(connectionString);
-            CreateTable(db);
-            
-            return db;
-        }
-
-        private void CreateTable(DbConnection db)
-        {
-            if (!_createCalled)
-            {
-                _createCalled = true;
-                db.CreateStructure();
             }
         }
     }
