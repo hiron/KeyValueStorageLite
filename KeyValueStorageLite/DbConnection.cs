@@ -90,6 +90,8 @@ namespace KeyValueStorageLite
         {
             using (var cmd = _connection.CreateCommand())
             {
+                cmd.CommandText = "PRAGMA journal_mode=DELETE";
+                cmd.ExecuteNonQuery();
                 cmd.CommandText =
                     "CREATE TABLE IF NOT EXISTS `KeyValueItem` ( \"Key\" varchar primary key not null , \"Value\" varchar );";
                 cmd.ExecuteNonQuery();

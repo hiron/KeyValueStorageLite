@@ -55,8 +55,6 @@ namespace KeyValueStorageLite
         {
             if (!_createCalled)
             {
-                Debug.WriteLine("CreateTable");
-                Console.WriteLine("CreateTable2");
                 _createCalled = true;
                 db.CreateStructure();
             }
