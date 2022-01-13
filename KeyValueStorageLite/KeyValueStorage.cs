@@ -48,6 +48,8 @@
                 string? sValue = typeof(T) == typeof(string) ? value as string : _serializer.SerializeToString(value);
                 if (sValue != null)
                 {
+                    if (_cache.Value.TryGetValue(key, out var existValue) && existValue == sValue)
+                        return;
                     _cache.Value[key] = sValue;
                     using (var db = CreateConnection())
                     {
