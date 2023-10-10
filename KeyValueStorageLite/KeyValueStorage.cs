@@ -45,7 +45,7 @@
             ArgumentNullException.ThrowIfNull(value);
             lock (_sync)
             {
-                string? sValue = typeof(T) == typeof(string) ? value as string : _serializer.SerializeToString(value);
+                string? sValue = value as string ?? _serializer.SerializeToString(value);
                 if (sValue != null)
                 {
                     if (_cache.Value.TryGetValue(key, out var existValue) && existValue == sValue)

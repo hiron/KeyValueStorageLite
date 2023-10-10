@@ -37,5 +37,12 @@ namespace KeyValueStorageLite.Tests
             });
             Assert.Equal("value1", storage.Get<string>("key1"));
         }
+        [Fact]
+        public void WriteStringAsObject()
+        {
+            var storage = new KeyValueStorage(true, "test4");
+            storage.Set<object>("key1", "2.2.999.0");
+            Assert.Equal("2.2.999.0", storage.Get<string>("key1"));
+        }
     }
 }
