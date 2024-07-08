@@ -59,12 +59,12 @@
             }
         }
 
-        public T? GetOrCreate<T>(string key, Func<T> create)
+        public T GetOrCreate<T>(string key, Func<T> create)
         {
             lock (_sync)
             {
                 T? value = Get<T>(key);
-                if (EqualityComparer<T>.Default.Equals(value, default))
+                if (value is null || EqualityComparer<T>.Default.Equals(value, default))
                 {
                     value = create();
                     if (value != null)
