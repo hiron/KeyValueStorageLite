@@ -13,15 +13,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup dotnet
+    - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '6.0.x'
     - name: Publish
       id: publish_nuget
-      uses: rohith/publish-nuget@v2
+      uses: alirezanet/publish-nuget@v3.1.0
       with:
         PROJECT_FILE_PATH: KeyValueStorageLite/KeyValueStorageLite.csproj
         NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-        TAG_COMMIT: false
+        #TAG_COMMIT: false
         # run: dotnet nuget push bin/Release/TSLab.DataSource.2.1.0.nupkg -k oy2ec2w462665fmxa2uqbohd4rmywrzercphqvl7vtgbse --skip-duplicate -s https://api.nuget.org/v3/index.json
