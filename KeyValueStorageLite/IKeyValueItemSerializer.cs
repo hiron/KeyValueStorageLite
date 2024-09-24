@@ -2,7 +2,7 @@
 {
     public interface IKeyValueItemSerializer
     {
-        T? GetValue<T>(string stringValue);
-        string? SerializeToString(object value);
+        T? GetValue<T>(string? stringValue);
+        string? SerializeToString(object? value);
     }
 }
