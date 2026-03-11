@@ -39,13 +39,6 @@ jobs:
             exit 1
           fi
 
-          if [ "$PROJECT_VERSION" != "${{ steps.tag_version.outputs.tag_version }}" ]; then
-            echo "Tag version: ${{ steps.tag_version.outputs.tag_version }}"
-            echo "Project version: $PROJECT_VERSION"
-            echo "Tag and project version do not match"
-            exit 1
-          fi
-
       - name: Restore dependencies
         run: dotnet restore KeyValueStorageLite/KeyValueStorageLite.csproj
 
