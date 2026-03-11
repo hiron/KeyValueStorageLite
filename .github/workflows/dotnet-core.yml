@@ -1,27 +1,59 @@
-name: .NET Core
+name: Publish NuGet Package
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  build:
-
+  publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '6.0.x'
-    - name: Publish
-      id: publish_nuget
-      uses: alirezanet/publish-nuget@v3.1.0
-      with:
-        PROJECT_FILE_PATH: KeyValueStorageLite/KeyValueStorageLite.csproj
-        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-        #TAG_COMMIT: false
-        # run: dotnet nuget push bin/Release/TSLab.DataSource.2.1.0.nupkg -k oy2ec2w462665fmxa2uqbohd4rmywrzercphqvl7vtgbse --skip-duplicate -s https://api.nuget.org/v3/index.json
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Extract version from tag
+        id: tag_version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "tag_version=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Validate project version matches tag
+        shell: bash
+        run: |
+          CSPROJ="KeyValueStorageLite/KeyValueStorageLite.csproj"
+          PROJECT_VERSION=$(grep -oPm1 '(?<=<Version>)[^<]+' "$CSPROJ" || true)
+
+          if [ -z "$PROJECT_VERSION" ]; then
+            echo "Version not found in $CSPROJ"
+            exit 1
+          fi
+
+          if [ "$PROJECT_VERSION" != "${{ steps.tag_version.outputs.tag_version }}" ]; then
+            echo "Tag version: ${{ steps.tag_version.outputs.tag_version }}"
+            echo "Project version: $PROJECT_VERSION"
+            echo "Tag and project version do not match"
+            exit 1
+          fi
+
+      - name: Restore dependencies
+        run: dotnet restore KeyValueStorageLite/KeyValueStorageLite.csproj
+
+      - name: Build
+        run: dotnet build KeyValueStorageLite/KeyValueStorageLite.csproj --configuration Release --no-restore
+
+      - name: Pack
+        run: dotnet pack KeyValueStorageLite/KeyValueStorageLite.csproj --configuration Release --no-build --output ./artifacts
+
+      - name: Publish to NuGet
+        run: dotnet nuget push "./artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
