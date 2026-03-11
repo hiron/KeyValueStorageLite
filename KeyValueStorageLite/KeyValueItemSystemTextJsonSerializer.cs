@@ -11,7 +11,7 @@ namespace KeyValueStorageLite
             PropertyNameCaseInsensitive = true,
         };
 
-        public T? GetValue<T>(string stringValue)
+        public T? GetValue<T>(string? stringValue)
         {
             if (stringValue == null)
                 return default;
@@ -19,7 +19,7 @@ namespace KeyValueStorageLite
             return JsonSerializer.Deserialize<T>(stringValue, _jsonOptions);
         }
 
-        public string? SerializeToString(object value)
+        public string? SerializeToString(object? value)
         {
             if (value == null)
                 return null;
